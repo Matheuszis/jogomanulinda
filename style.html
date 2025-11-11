@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💖 Joguinho da Princesinha Manu 💖</title>
+  <style>
+    body {
+      text-align: center;
+      background: linear-gradient(to bottom, #ffe6f2, #ffb3da);
+      font-family: "Comic Sans MS", cursive;
+      overflow: hidden;
+      cursor: url('https://cur.cursors-4u.net/cursors/cur-2/cur115.cur'), auto;
+    }
+
+    h1 {
+      color: #ff66b3;
+      text-shadow: 1px 1px 3px #fff;
+    }
+
+    #startScreen, #endScreen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    #startBtn, #retryBtn {
+      background-color: #ff80bf;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 25px;
+      font-size: 20px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 15px #ffb6d9;
+      transition: transform 0.2s, background 0.3s;
+      margin-top: 15px;
+    }
+
+    #startBtn:hover, #retryBtn:hover {
+      transform: scale(1.1);
+      background-color: #ff66b3;
+    }
+
+    #game {
+      position: relative;
+      margin: 20px auto;
+      width: 400px;
+      height: 500px;
+      background: #fff0f5;
+      border: 4px solid #ff99cc;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 20px #ffb6d9;
+      display: none;
+    }
+
+    #kitty {
+      position: absolute;
+      bottom: 10px;
+      left: 170px;
+      width: 60px;
+      transition: left 0.05s;
+    }
+
+    .heart {
+      position: absolute;
+      width: 35px;
+      animation: girar 1s linear infinite;
+    }
+
+    @keyframes girar {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #hud {
+      margin-top: 10px;
+      font-size: 18px;
+      color: #ff4081;
+      display: none;
+    }
+
+    #endScreen {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #endScreen h2 {
+      color: #ff4081;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 🌸 Tela inicial -->
+  <div id="startScreen">
+    <h1>💖 Joguinho da Princesinha Manu 💖</h1>
+    <button id="startBtn">🎀 Iniciar Jogo 🎀</button>
+  </div>
+
+  <!-- 🌸 Área do jogo -->
+  <div id="game">
+    <img id="kitty" src="imagens/pngegg.png" alt="Hello Kitty">
+  </div>
+
+  <!-- 🌸 Placar -->
+  <div id="hud">
+    <p>Pontos: <span id="score">0</span></p>
+    <p>Vidas: <span id="lives">3</span></p>
+  </div>
+
+  <!-- 🌸 Tela de fim -->
+  <div id="endScreen">
+    <h2 id="gameOverText"></h2>
+    <button id="retryBtn">🔁 Tentar novamente 🔁</button>
+  </div>
+
+  <audio id="popSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_90f2a7e4e4.mp3" preload="auto"></audio>
+
+  <script>
+    const game = document.getElementById("game");
+    const kitty = document.getElementById("kitty");
+    const scoreEl = document.getElementById("score");
+    const livesEl = document.getElementById("lives");
+    const popSound = document.getElementById("popSound");
+    const startBtn = document.getElementById("startBtn");
+    const retryBtn = document.getElementById("retryBtn");
+    const startScreen = document.getElementById("startScreen");
+    const endScreen = document.getElementById("endScreen");
+    const gameOverText = document.getElementById("gameOverText");
+    const hud = document.getElementById("hud");
+
+    let score = 0;
+    let lives = 3;
+    let kittyX = 170;
+    const speed = 15;
+    let gameInterval;
+    let running = false;
+
+    kitty.style.left = kittyX + "px";
+
+    // 🎀 Iniciar jogo
+    startBtn.addEventListener("click", startGame);
+    retryBtn.addEventListener("click", restartGame);
+
+    function startGame() {
+      startScreen.style.display = "none";
+      endScreen.style.display = "none";
+      game.style.display = "block";
+      hud.style.display = "block";
+
+      score = 0;
+      lives = 3;
+      kittyX = 170;
+      kitty.style.left = kittyX + "px";
+      scoreEl.textContent = score;
+      livesEl.textContent = lives;
+      running = true;
+
+      document.addEventListener("keydown", moveKitty);
+      gameInterval = setInterval(createHeart, 1000);
+    }
+
+    function moveKitty(e) {
+      if (!running) return;
+      if (e.key === "ArrowLeft" && kittyX > 0) {
+        kittyX -= speed;
+      } else if (e.key === "ArrowRight" && kittyX < 340) {
+        kittyX += speed;
+      }
+      kitty.style.left = kittyX + "px";
+    }
+
+    function createHeart() {
+      if (!running) return;
+      const heart = document.createElement("img");
+      heart.src = "imagens/cupcake.png";
+      heart.classList.add("heart");
+      heart.style.left = Math.random() * 370 + "px";
+      heart.style.top = "0px";
+      game.appendChild(heart);
+
+      let fall = setInterval(() => {
+        if (!running) {
+          clearInterval(fall);
+          heart.remove();
+          return;
+        }
+
+        let top = parseInt(heart.style.top);
+        heart.style.top = top + 5 + "px";
+
+        // colisão
+        if (
+          top > 430 &&
+          parseInt(heart.style.left) > kittyX - 20 &&
+          parseInt(heart.style.left) < kittyX + 60
+        ) {
+          score++;
+          scoreEl.textContent = score;
+          popSound.currentTime = 0;
+          popSound.play();
+          heart.remove();
+          clearInterval(fall);
+        }
+
+        // caiu
+        if (top > 480) {
+          heart.remove();
+          clearInterval(fall);
+          lives--;
+          livesEl.textContent = lives;
+          if (lives <= 0) endGame();
+        }
+      }, 50);
+    }
+
+    function endGame() {
+      running = false;
+      clearInterval(gameInterval);
+      document.removeEventListener("keydown", moveKitty);
+      game.style.display = "none";
+      hud.style.display = "none";
+      endScreen.style.display = "flex";
+      gameOverText.textContent = `💥 Boooom! Princesinha Manu perdeu! 💖 Pontos: ${score}`;
+    }
+
+    function restartGame() {
+      endScreen.style.display = "none";
+      startGame();
+    }
+  </script>
+</body>
+</html>
